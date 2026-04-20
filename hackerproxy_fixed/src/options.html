@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HackerProxy — Settings</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0e1420;
+      --bg3:       #141c2e;
+      --bg4:       #1a2438;
+      --border:    #1e2d40;
+      --border2:   #2a3f58;
+      --border3:   #3a5070;
+      --text:      #c8d8ea;
+      --text-dim:  #5a7a9a;
+      --text-muted:#3a5070;
+      --green:     #00e676;
+      --green-dim: #00b050;
+      --green-bg:  #001a0e;
+      --red:       #ff3d5a;
+      --red-bg:    #1a0010;
+      --amber:     #ffa726;
+      --blue:      #4a9eff;
+      --mono:      'JetBrains Mono', 'Courier New', monospace;
+      --sans:      'IBM Plex Sans', system-ui, sans-serif;
+      --radius:    6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-terminal {
+      font-family: var(--mono);
+      font-size: 18px;
+      color: var(--green);
+    }
+
+    .logo-title {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Main layout ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 280px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .rule-items {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .rule-items::-webkit-scrollbar { width: 4px; }
+    .rule-items::-webkit-scrollbar-track { background: transparent; }
+    .rule-items::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .rule-item:hover { background: var(--bg3); }
+    .rule-item.active { background: var(--bg4); border-left: 2px solid var(--blue); }
+
+    .rule-item-color {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rule-item-info { flex: 1; min-width: 0; }
+
+    .rule-item-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rule-item-proxy {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .rule-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ── Editor ── */
+    .editor {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .editor::-webkit-scrollbar { width: 5px; }
+    .editor::-webkit-scrollbar-track { background: transparent; }
+    .editor::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .no-selection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 10px;
+    }
+
+    .no-selection .icon { font-size: 36px; opacity: 0.3; }
+    .no-selection p { font-size: 13px; line-height: 1.6; }
+
+    /* ── Editor form ── */
+    .editor-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .editor-title h2 {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .field-group {
+      margin-bottom: 20px;
+    }
+
+    .field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--blue);
+    }
+
+    input[type="number"] { width: 100px; }
+
+    select { cursor: pointer; }
+    select option { background: var(--bg3); }
+
+    /* ── Color picker ── */
+    .color-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .color-swatch:hover { transform: scale(1.15); }
+
+    .color-swatch.selected {
+      border-color: var(--text);
+      box-shadow: 0 0 0 1px var(--text);
+    }
+
+    .color-swatch::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: rgba(0,0,0,0.7);
+      opacity: 0;
+    }
+
+    .color-swatch.selected::after { opacity: 1; }
+
+    /* ── Patterns section ── */
+    .patterns-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .pattern-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .pattern-row input {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .pattern-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-top: 6px;
+    }
+
+    .pattern-hint span { color: var(--green-dim); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: #003018;
+      border-color: var(--green-dim);
+      color: var(--green);
+    }
+    .btn-primary:hover {
+      background: #004022;
+      box-shadow: 0 0 8px rgba(0,176,80,0.2);
+    }
+
+    .btn-secondary {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text-dim);
+    }
+    .btn-secondary:hover {
+      border-color: var(--border3);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+    .btn-danger:hover {
+      background: var(--red-bg);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .btn-icon {
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toggle input { display: none; }
+    .track {
+      position: absolute;
+      inset: 0;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .toggle input:checked ~ .track { background: #003825; border-color: var(--green-dim); }
+    .toggle input:checked ~ .thumb { transform: translateX(18px); background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── Global settings section ── */
+    .settings-section {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .settings-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-info label {
+      font-size: 13px;
+      color: var(--text);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .setting-info p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ── Export/import ── */
+    .io-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: #0e2818;
+      border: 1px solid var(--green-dim);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 11px;
+      border-radius: var(--radius);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.error { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Editor action bar ── */
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <span class="logo-terminal">&gt;_</span>
+    <div>
+      <div class="logo-title">HackerProxy</div>
+      <div class="logo-sub">settings &amp; proxy rules</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-secondary" id="btnExport">↑ Export</button>
+    <button class="btn btn-secondary" id="btnImport">↓ Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- Sidebar: rule list -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-label">Rules</span>
+      <button class="btn btn-primary btn-icon" id="btnNewRule" title="New rule">+ New</button>
+    </div>
+    <div class="rule-items" id="ruleItems">
+      <!-- injected by options.js -->
+    </div>
+  </div>
+
+  <!-- Editor panel -->
+  <div class="editor" id="editor">
+    <div class="no-selection" id="noSelection">
+      <div class="icon">⟳</div>
+      <p>Select a rule to edit<br>or create a new one</p>
+    </div>
+
+    <!-- Rule editor form (hidden until a rule is selected) -->
+    <div id="ruleEditor" style="display:none">
+      <div class="editor-title">
+        <h2 id="editorTitle">Edit Rule</h2>
+        <button class="btn btn-danger" id="btnDeleteRule">✕ Delete</button>
+      </div>
+
+      <!-- Name -->
+      <div class="field-group">
+        <label class="field-label">Rule name</label>
+        <input type="text" id="fieldName" placeholder="e.g. Burp Suite">
+      </div>
+
+      <!-- Proxy settings -->
+      <div class="field-group">
+        <label class="field-label">Proxy</label>
+        <div class="field-row">
+          <input type="text" id="fieldHost" placeholder="127.0.0.1" style="flex:1">
+          <input type="number" id="fieldPort" placeholder="8080" min="1" max="65535">
+          <select id="fieldType">
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+            <option value="socks4">SOCKS4</option>
+            <option value="socks5">SOCKS5</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Color (Burp colors) -->
+      <div class="field-group">
+        <label class="field-label">Burp highlight color</label>
+        <div class="color-grid" id="colorGrid">
+          <!-- injected by options.js -->
+        </div>
+      </div>
+
+      <!-- URL patterns -->
+      <div class="field-group">
+        <label class="field-label">URL patterns</label>
+        <div class="patterns-list" id="patternsList">
+          <!-- injected by options.js -->
+        </div>
+        <button class="btn btn-secondary" id="btnAddPattern">+ Add pattern</button>
+        <div class="pattern-hint">
+          Use <span>*</span> as wildcard — e.g. <span>*://target.com/*</span> or <span>*://*.api.target.com/*</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="editor-actions">
+        <button class="btn btn-primary" id="btnSaveRule">✓ Save rule</button>
+        <button class="btn btn-secondary" id="btnCancel">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Global settings (always visible at bottom) -->
+    <div class="settings-section" id="globalSettings">
+      <div class="settings-title">Global Settings</div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Use Firefox container colors</label>
+          <p>Override rule color with the active container's color</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="settingContainerColors">
+          <div class="track"></div>
+          <div class="thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Burp Suite JAR</label>
+          <p>Load <strong>PwnFox.jar</strong> in Burp Extender — handles X-PwnFox-Color headers</p>
+        </div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">↑ Extender tab</span>
+      </div>
+
+      <div class="io-row">
+        <button class="btn btn-danger" id="btnReset">⚠ Reset all settings</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "name": "HackerProxy",
+  "version": "1.0.0",
+  "description": "URL-pattern proxy routing + Burp color headers. FoxyProxy routing + PwnFox colors in one tool.",
+  "author": "hackerproxy",
+
+  "permissions": [
+    "proxy",
+    "storage",
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "contextualIdentities",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": [
+      "src/config.js",
+      "src/background.js"
+    ],
+    "persistent": true
+  },
+
+  "browser_action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "48": "icons/icon.svg"
+    },
+    "default_title": "HackerProxy"
+  },
+
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
+
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hackerproxy@pentest",
+      "strict_min_version": "91.0"
+    }
+  }
+}

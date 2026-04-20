@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HackerProxy</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0e1420;
+      --bg3:       #141c2e;
+      --border:    #1e2d40;
+      --border2:   #2a3f58;
+      --text:      #c8d8ea;
+      --text-dim:  #5a7a9a;
+      --text-muted:#3a5070;
+      --green:     #00e676;
+      --green-dim: #00b050;
+      --red:       #ff3d5a;
+      --amber:     #ffa726;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'IBM Plex Sans', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 360px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      user-select: none;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--green);
+      line-height: 1;
+    }
+
+    .logo-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+
+    .logo-version {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── Global toggle ── */
+    .global-toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .status-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .status-text.on  { color: var(--green); }
+    .status-text.off { color: var(--text-muted); }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .toggle input { display: none; }
+    .track {
+      position: absolute;
+      inset: 0;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked ~ .track {
+      background: #003825;
+      border-color: var(--green-dim);
+    }
+    .toggle input:checked ~ .thumb {
+      transform: translateX(18px);
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px 7px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .btn-add {
+      width: 20px;
+      height: 20px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-add:hover {
+      border-color: var(--green-dim);
+      color: var(--green);
+      background: #001a0e;
+    }
+
+    /* ── Rule list ── */
+    .rules-list {
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .rules-list::-webkit-scrollbar { width: 4px; }
+    .rules-list::-webkit-scrollbar-track { background: var(--bg); }
+    .rules-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .rule-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+      cursor: default;
+    }
+
+    .rule-card:hover { background: var(--bg2); }
+
+    .rule-color-bar {
+      width: 3px;
+      height: 36px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    .rule-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rule-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rule-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .rule-proxy { color: var(--text-dim); }
+
+    .rule-patterns {
+      font-size: 10px;
+      padding: 1px 5px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      color: var(--text-muted);
+    }
+    .rule-patterns.has-patterns { color: var(--green-dim); border-color: #1a3a25; background: #0a1e12; }
+
+    .rule-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-edit {
+      width: 22px;
+      height: 22px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-edit:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 28px 14px;
+      text-align: center;
+    }
+
+    .empty-state .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+      opacity: 0.4;
+    }
+
+    .empty-state p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .empty-state .hint {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--green-dim);
+      margin-top: 6px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 8px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-domain {
+      flex: 1;
+      padding: 7px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      color: var(--text-dim);
+      font-family: var(--sans);
+      font-size: 11px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-domain:hover {
+      border-color: var(--green-dim);
+      color: var(--green);
+      background: #001a0e;
+    }
+
+    .btn-options {
+      padding: 7px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      color: var(--text-dim);
+      font-family: var(--sans);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-options:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* ── Container colors row ── */
+    .container-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+
+    .container-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .container-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 1px 4px;
+      background: #1a1a00;
+      border: 1px solid #3a3a00;
+      border-radius: 2px;
+      color: #8a8a00;
+    }
+
+    /* ── Notification toast ── */
+    .toast {
+      position: fixed;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #0e2818;
+      border: 1px solid var(--green-dim);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 5px 12px;
+      border-radius: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-icon">&gt;_</span>
+    <div>
+      <div class="logo-name">HackerProxy</div>
+      <div class="logo-version">v1.0.0 · Firefox</div>
+    </div>
+  </div>
+  <div class="global-toggle">
+    <span class="status-text off" id="statusText">OFF</span>
+    <label class="toggle" title="Toggle proxy routing">
+      <input type="checkbox" id="globalToggle">
+      <div class="track"></div>
+      <div class="thumb"></div>
+    </label>
+  </div>
+</div>
+
+<!-- Rules section -->
+<div class="section-header">
+  <span class="section-label">Proxy Rules</span>
+  <button class="btn-add" id="btnAddRule" title="Add new rule">+</button>
+</div>
+
+<div class="rules-list" id="rulesList">
+  <!-- injected by popup.js -->
+</div>
+
+<!-- Container colors toggle -->
+<div class="container-row">
+  <span class="container-label">
+    Container colors
+    <span class="container-badge">Firefox only</span>
+  </span>
+  <label class="toggle" title="Use Firefox container colors for Burp highlighting">
+    <input type="checkbox" id="containerToggle">
+    <div class="track"></div>
+    <div class="thumb"></div>
+  </label>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <button class="btn-domain" id="btnAddDomain">+ Add current domain</button>
+  <button class="btn-options" id="btnOptions">⚙ Settings</button>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
